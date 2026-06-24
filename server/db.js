@@ -11,6 +11,68 @@ const all = async (text, params) => { const r = await pool.query(text, params); 
 
 async function init() {
   await pool.query(`
+    -- Showroom locations
+    CREATE TABLE IF NOT EXISTS showrooms (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      city TEXT,
+      address TEXT,
+      phone TEXT,
+      manager_name TEXT,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- CRM users with roles
+    CREATE TABLE IF NOT EXISTS crm_users (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE,
+      phone TEXT,
+      role TEXT DEFAULT 'sales_rep',  -- sales_rep | manager | admin
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      is_active BOOLEAN DEFAULT TRUE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Marketing campaigns
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      source TEXT,   -- Facebook, Instagram, WhatsApp, Walk-in, Referral, etc.
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      budget NUMERIC(12,2),
+      start_date DATE,
+      end_date DATE,
+      status TEXT DEFAULT 'active',
+      meta_campaign_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Contacts / Leads
+    CREATE TABLE IF NOT EXISTS contacts (
+      id SERIAL PRIMARY KEY,
+      first_name TEXT NOT NULL,
+      last_name TEXT,
+      email TEXT,
+      phone TEXT,
+      company_id INTEGER,
+      company TEXT,
+      job_title TEXT,
+      lead_stage TEXT DEFAULT 'new',       -- new | contacted | proposal | closed_won | closed_lost
+      status TEXT DEFAULT 'lead',          -- lead | prospect | customer
+      source TEXT DEFAULT 'manual',        -- manual | meta_lead | whatsapp | walk_in | referral | social_media | campaign
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
+      campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
+      meta_lead_id TEXT,
+      whatsapp_id TEXT,
+      tags JSONB DEFAULT '[]',
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Companies
     CREATE TABLE IF NOT EXISTS companies (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -28,31 +90,28 @@ async function init() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
-    CREATE TABLE IF NOT EXISTS contacts (
-      id SERIAL PRIMARY KEY,
-      first_name TEXT NOT NULL,
-      last_name TEXT,
-      email TEXT,
-      phone TEXT,
-      company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-      company TEXT,
-      job_title TEXT,
-      status TEXT DEFAULT 'lead',
-      source TEXT DEFAULT 'manual',
-      meta_lead_id TEXT,
-      whatsapp_id TEXT,
-      tags JSONB DEFAULT '[]',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
+    -- Add company FK after both tables exist
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE constraint_name = 'contacts_company_id_fkey'
+      ) THEN
+        ALTER TABLE contacts ADD CONSTRAINT contacts_company_id_fkey
+          FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL;
+      END IF;
+    END $$;
 
+    -- Deals / Pipeline
     CREATE TABLE IF NOT EXISTS deals (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
       company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
+      campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
       value NUMERIC(15,2) DEFAULT 0,
-      currency TEXT DEFAULT 'USD',
+      currency TEXT DEFAULT 'INR',
       stage TEXT DEFAULT 'prospecting',
       probability INTEGER DEFAULT 0,
       expected_close DATE,
@@ -61,6 +120,34 @@ async function init() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Sales transactions (jewelry-specific)
+    CREATE TABLE IF NOT EXISTS sales (
+      id SERIAL PRIMARY KEY,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
+      campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
+
+      -- Product category
+      product_category TEXT NOT NULL, -- gold | diamond | platinum | silver | advance | scheme
+
+      -- Common fields
+      bill_no TEXT,
+      order_no TEXT,
+      scheme_no TEXT,
+      amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+      contact_person TEXT,
+
+      -- Jewelry-specific
+      weight_grams NUMERIC(10,3),
+      diamond_carat NUMERIC(10,3),
+
+      sale_date DATE DEFAULT CURRENT_DATE,
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Tasks / Activities
     CREATE TABLE IF NOT EXISTS tasks (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
@@ -68,6 +155,7 @@ async function init() {
       type TEXT DEFAULT 'task',
       contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
       deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
       due_date TIMESTAMPTZ,
       priority TEXT DEFAULT 'medium',
       status TEXT DEFAULT 'pending',
@@ -75,6 +163,7 @@ async function init() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Notes / Activity log
     CREATE TABLE IF NOT EXISTS notes (
       id SERIAL PRIMARY KEY,
       contact_id INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
@@ -86,6 +175,7 @@ async function init() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Meta Ads
     CREATE TABLE IF NOT EXISTS meta_ads (
       id SERIAL PRIMARY KEY,
       ad_id TEXT UNIQUE,
@@ -108,6 +198,7 @@ async function init() {
       synced_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Meta Leads
     CREATE TABLE IF NOT EXISTS meta_leads (
       id SERIAL PRIMARY KEY,
       lead_gen_id TEXT UNIQUE,
@@ -120,6 +211,7 @@ async function init() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- WhatsApp messages
     CREATE TABLE IF NOT EXISTS whatsapp_messages (
       id SERIAL PRIMARY KEY,
       message_id TEXT UNIQUE,

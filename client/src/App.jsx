@@ -6,32 +6,40 @@ import ContactDetail from './pages/ContactDetail'
 import Companies from './pages/Companies'
 import Pipeline from './pages/Pipeline'
 import Activities from './pages/Activities'
+import Sales from './pages/Sales'
+import Showrooms from './pages/Showrooms'
+import CrmUsers from './pages/CrmUsers'
+import Campaigns from './pages/Campaigns'
 import WhatsApp from './pages/WhatsApp'
 import MetaAds from './pages/MetaAds'
 import SettingsPage from './pages/Settings'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: '🏠', end: true },
-  { to: '/contacts', label: 'Contacts', icon: '👥' },
-  { to: '/companies', label: 'Companies', icon: '🏢' },
+  { to: '/contacts', label: 'Leads & Contacts', icon: '👥' },
+  { to: '/sales', label: 'Sales', icon: '💎' },
   { to: '/pipeline', label: 'Pipeline', icon: '📊' },
   { to: '/activities', label: 'Activities', icon: '✅' },
+  { to: '/campaigns', label: 'Campaigns', icon: '📣' },
+  { to: '/companies', label: 'Companies', icon: '🏢' },
+  { to: '/showrooms', label: 'Showrooms', icon: '🏪' },
+  { to: '/users', label: 'Users', icon: '👤' },
   { to: '/whatsapp', label: 'WhatsApp', icon: '💬' },
-  { to: '/meta', label: 'Meta Ads', icon: '📣' },
+  { to: '/meta', label: 'Meta Ads', icon: '📲' },
   { to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 export default function App() {
   return (
     <div className="flex h-screen overflow-hidden">
-      <aside className="w-56 bg-indigo-950 flex flex-col flex-shrink-0">
-        <div className="px-5 py-5 border-b border-indigo-900">
+      <aside className="w-56 bg-indigo-950 flex flex-col flex-shrink-0 overflow-y-auto">
+        <div className="px-5 py-5 border-b border-indigo-900 sticky top-0 bg-indigo-950 z-10">
           <span className="text-white font-bold text-lg flex items-center gap-2">
-            <span className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center text-xs font-bold">C</span>
-            CRM
+            <span className="w-7 h-7 bg-indigo-500 rounded-lg flex items-center justify-center text-xs font-bold">💍</span>
+            Jewel CRM
           </span>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="px-3 py-4 space-y-0.5">
           {NAV.map(({ to, icon, label, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) =>
@@ -53,6 +61,10 @@ export default function App() {
           <Route path="/companies" element={<Companies />} />
           <Route path="/pipeline" element={<Pipeline />} />
           <Route path="/activities" element={<Activities />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/showrooms" element={<Showrooms />} />
+          <Route path="/users" element={<CrmUsers />} />
+          <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/whatsapp" element={<WhatsApp />} />
           <Route path="/meta" element={<MetaAds />} />
           <Route path="/settings" element={<SettingsPage />} />
