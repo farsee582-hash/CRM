@@ -1,21 +1,25 @@
 {
   "name": "crm",
-  "version": "1.0.0",
-  "description": "Full-featured CRM with Meta Ads, Leads, and WhatsApp integration",
+  "version": "2.0.0",
+  "description": "CRM with Meta Ads, Leads, and WhatsApp — Zoho Bigin inspired",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "nodemon server/index.js"
+    "dev:server": "nodemon server/index.js",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
+    "axios": "^1.6.8",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
-    "axios": "^1.6.8",
-    "multer": "^1.4.5-lts.1"
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "nodemon": "^3.1.0"
   }
 }
