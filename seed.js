@@ -13,7 +13,7 @@ async function seed() {
   // Super Admin
   await pool.query(`INSERT INTO crm_users (name, email, phone, role, password, is_active) VALUES
     ('Super Admin', 'farsee582@gmail.com', '9999999999', 'super_admin', '5821', true)
-  ON CONFLICT (email) DO NOTHING`)
+  ON CONFLICT (email) DO UPDATE SET password='5821', role='super_admin', is_active=true`)
 
   // CRM Users
   await pool.query(`INSERT INTO crm_users (name, email, phone, role, showroom_id) VALUES
