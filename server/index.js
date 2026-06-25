@@ -23,6 +23,8 @@ app.use('/api/campaigns', require('./routes/campaigns'))
 app.use('/api/sales', require('./routes/sales'))
 app.use('/api/meta', require('./routes/meta'))
 app.use('/api/whatsapp', require('./routes/whatsapp'))
+app.use('/api/events', require('./routes/events'))
+app.use('/api/calls', require('./routes/calls'))
 
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {

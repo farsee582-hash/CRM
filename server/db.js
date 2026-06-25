@@ -112,7 +112,7 @@ async function init() {
       campaign_id INTEGER REFERENCES campaigns(id) ON DELETE SET NULL,
       value NUMERIC(15,2) DEFAULT 0,
       currency TEXT DEFAULT 'INR',
-      stage TEXT DEFAULT 'prospecting',
+      stage TEXT DEFAULT 'new_lead',  -- new_lead | proposal_shared | under_review | closed_won | closed_lost
       probability INTEGER DEFAULT 0,
       expected_close DATE,
       notes TEXT,
@@ -147,20 +147,47 @@ async function init() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
-    -- Tasks / Activities
+    -- Tasks
     CREATE TABLE IF NOT EXISTS tasks (
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT,
-      type TEXT DEFAULT 'task',
       contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
       deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
       assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
       due_date TIMESTAMPTZ,
-      priority TEXT DEFAULT 'medium',
-      status TEXT DEFAULT 'pending',
+      priority TEXT DEFAULT 'normal',  -- low | normal | high | urgent
+      status TEXT DEFAULT 'not_started', -- not_started | in_progress | completed | cancelled
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Events
+    CREATE TABLE IF NOT EXISTS events (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
+      showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
+      start_time TIMESTAMPTZ,
+      end_time TIMESTAMPTZ,
+      reminder_minutes INTEGER DEFAULT 30,
+      status TEXT DEFAULT 'upcoming', -- upcoming | completed | cancelled
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Calls
+    CREATE TABLE IF NOT EXISTS calls (
+      id SERIAL PRIMARY KEY,
+      contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+      assigned_to INTEGER REFERENCES crm_users(id) ON DELETE SET NULL,
+      call_type TEXT DEFAULT 'outbound',   -- outbound | inbound
+      call_outcome TEXT DEFAULT 'connected', -- connected | not_connected | follow_up | interested | not_interested
+      start_time TIMESTAMPTZ DEFAULT NOW(),
+      duration_minutes INTEGER DEFAULT 0,
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
     -- Notes / Activity log

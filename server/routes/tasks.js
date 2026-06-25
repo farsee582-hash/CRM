@@ -21,17 +21,17 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { title, description, type, contact_id, deal_id, due_date, priority, status } = req.body
+  const { title, description, contact_id, deal_id, assigned_to, due_date, priority, status } = req.body
   if (!title) return res.status(400).json({ error: 'title required' })
   const r = await run(`
-    INSERT INTO tasks (title,description,type,contact_id,deal_id,due_date,priority,status)
+    INSERT INTO tasks (title,description,contact_id,deal_id,assigned_to,due_date,priority,status)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id
-  `, [title,description,type||'task',contact_id||null,deal_id||null,due_date||null,priority||'medium',status||'pending'])
+  `, [title,description||null,contact_id||null,deal_id||null,assigned_to||null,due_date||null,priority||'normal',status||'not_started'])
   res.status(201).json({ id: r.rows[0].id })
 })
 
 router.put('/:id', async (req, res) => {
-  const fields = ['title','description','type','contact_id','deal_id','due_date','priority','status']
+  const fields = ['title','description','contact_id','deal_id','assigned_to','due_date','priority','status']
   const updates = []; const params = []
   for (const f of fields) {
     if (req.body[f] !== undefined) { updates.push(`${f}=$${params.length+1}`); params.push(req.body[f]) }
