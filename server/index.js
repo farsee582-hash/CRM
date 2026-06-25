@@ -11,6 +11,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, '..', 'public')))
 
+app.use('/api/auth', require('./routes/auth'))
 app.use('/api/dashboard', require('./routes/dashboard'))
 app.use('/api/contacts', require('./routes/contacts'))
 app.use('/api/companies', require('./routes/companies'))

@@ -29,11 +29,61 @@ async function init() {
       name TEXT NOT NULL,
       email TEXT UNIQUE,
       phone TEXT,
-      role TEXT DEFAULT 'sales_rep',  -- sales_rep | manager | admin
+      role TEXT DEFAULT 'sales_rep',  -- sales_rep | manager | super_admin
+      password TEXT DEFAULT '1234',
       showroom_id INTEGER REFERENCES showrooms(id) ON DELETE SET NULL,
       is_active BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
+    -- Role-based permissions per module
+    CREATE TABLE IF NOT EXISTS role_permissions (
+      id SERIAL PRIMARY KEY,
+      role TEXT NOT NULL,
+      module TEXT NOT NULL,
+      can_view BOOLEAN DEFAULT TRUE,
+      can_create BOOLEAN DEFAULT FALSE,
+      can_edit BOOLEAN DEFAULT FALSE,
+      can_delete BOOLEAN DEFAULT FALSE,
+      UNIQUE(role, module)
+    );
+
+    -- Seed default permissions if not already present
+    INSERT INTO role_permissions (role, module, can_view, can_create, can_edit, can_delete) VALUES
+      ('super_admin','dashboard',true,true,true,true),
+      ('super_admin','contacts',true,true,true,true),
+      ('super_admin','pipeline',true,true,true,true),
+      ('super_admin','sales',true,true,true,true),
+      ('super_admin','activities',true,true,true,true),
+      ('super_admin','campaigns',true,true,true,true),
+      ('super_admin','showrooms',true,true,true,true),
+      ('super_admin','users',true,true,true,true),
+      ('super_admin','reports',true,true,true,true),
+      ('super_admin','whatsapp',true,true,true,true),
+      ('super_admin','meta_ads',true,true,true,true),
+      ('manager','dashboard',true,false,false,false),
+      ('manager','contacts',true,true,true,false),
+      ('manager','pipeline',true,true,true,false),
+      ('manager','sales',true,true,true,false),
+      ('manager','activities',true,true,true,false),
+      ('manager','campaigns',true,true,true,false),
+      ('manager','showrooms',true,false,false,false),
+      ('manager','users',true,false,false,false),
+      ('manager','reports',true,false,false,false),
+      ('manager','whatsapp',true,true,false,false),
+      ('manager','meta_ads',true,false,false,false),
+      ('sales_rep','dashboard',true,false,false,false),
+      ('sales_rep','contacts',true,true,true,false),
+      ('sales_rep','pipeline',true,true,true,false),
+      ('sales_rep','sales',true,true,false,false),
+      ('sales_rep','activities',true,true,true,false),
+      ('sales_rep','campaigns',true,false,false,false),
+      ('sales_rep','showrooms',false,false,false,false),
+      ('sales_rep','users',false,false,false,false),
+      ('sales_rep','reports',false,false,false,false),
+      ('sales_rep','whatsapp',true,true,false,false),
+      ('sales_rep','meta_ads',false,false,false,false)
+    ON CONFLICT (role, module) DO NOTHING;
 
     -- Marketing campaigns
     CREATE TABLE IF NOT EXISTS campaigns (
