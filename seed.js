@@ -12,7 +12,7 @@ async function seed() {
 
   // Super Admin
   await pool.query(`INSERT INTO crm_users (name, email, phone, role, password, is_active) VALUES
-    ('Super Admin', 'admin@jewelcrm.com', '9999999999', 'super_admin', '1234', true)
+    ('Super Admin', 'farsee582@gmail.com', '9999999999', 'super_admin', '5821', true)
   ON CONFLICT (email) DO NOTHING`)
 
   // CRM Users
