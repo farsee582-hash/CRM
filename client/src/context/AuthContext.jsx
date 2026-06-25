@@ -9,9 +9,17 @@ export function AuthProvider({ children }) {
   const [permissions, setPermissions] = useState({})
 
   useEffect(() => {
-    const saved = localStorage.getItem('crm_user')
-    const savedPerms = localStorage.getItem('crm_permissions')
-    if (saved) { setCurrentUser(JSON.parse(saved)); setPermissions(JSON.parse(savedPerms || '{}')) }
+    try {
+      const saved = localStorage.getItem('crm_user')
+      const savedPerms = localStorage.getItem('crm_permissions')
+      if (saved) {
+        setCurrentUser(JSON.parse(saved))
+        setPermissions(JSON.parse(savedPerms || '{}'))
+      }
+    } catch {
+      localStorage.removeItem('crm_user')
+      localStorage.removeItem('crm_permissions')
+    }
   }, [])
 
   const login = (user, perms) => {
