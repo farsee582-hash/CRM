@@ -10,6 +10,11 @@ async function seed() {
     ('Jewel Palace - Whitefield', 'Bangalore', 'No. 8, Whitefield Main Road - 560066', '080-41234569', 'Priya Nair')
   `)
 
+  // Super Admin
+  await pool.query(`INSERT INTO crm_users (name, email, phone, role, password, is_active) VALUES
+    ('Super Admin', 'admin@jewelcrm.com', '9999999999', 'super_admin', '1234', true)
+  ON CONFLICT (email) DO NOTHING`)
+
   // CRM Users
   await pool.query(`INSERT INTO crm_users (name, email, phone, role, showroom_id) VALUES
     ('Ramesh Kumar', 'ramesh@jewelpalace.com', '9876543210', 'manager', 1),
